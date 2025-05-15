@@ -6,7 +6,7 @@ from PIL import Image
 API_CHAT_URL = "https://mi-app-591630341746.us-central1.run.app/insight"
 API_SYNC_URL = "https://mi-app-591630341746.us-central1.run.app/sync-drive-to-pinecone"
 NAMESPACES = [
-    "APEC", "Bancoppel", "Bioderma", "Esthederm", "Etat-Pur",
+    "APEC","Kingspan", "Bancoppel", "Bioderma", "Esthederm", "Etat-Pur",
     "Honeywell", "Lexema", "Sanfer", "Zoomlion"
 ]
 
