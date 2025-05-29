@@ -5,9 +5,9 @@ from io import BytesIO
 import base64
 
 # --- Configuración general ---
-API_CHAT_URL = "http://127.0.0.1:8080/insight"
-API_TABULAR_URL = "http://127.0.0.1:8080/tabular-insight"
-API_TABULAR_FILES = "http://127.0.0.1:8080/tabular-files"
+API_CHAT_URL = "https://mi-app-591630341746.us-central1.run.app/insight"
+API_TABULAR_URL = "https://mi-app-591630341746.us-central1.run.app/tabular-insight"
+API_TABULAR_FILES = "https://mi-app-591630341746.us-central1.run.app/tabular-files"
 NAMESPACES = [
     "APEC", "Kingspan", "Bancoppel", "Bioderma", "Esthederm", "Etat-Pur",
     "Honeywell", "Lexema", "Sanfer", "Zoomlion"
