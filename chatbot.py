@@ -19,6 +19,7 @@ logo = Image.open("logo.png")
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image(logo, width=100)
+st.markdown("<h1>Asistente Lexema</h1>", unsafe_allow_html=True)
 
 # --- Sidebar ---
 st.sidebar.header("🔧 Configuración")
@@ -26,7 +27,7 @@ st.sidebar.header("🔧 Configuración")
 selected_namespace = st.sidebar.selectbox("Selecciona una empresa", NAMESPACES)
 
 # 🔁 Modo de análisis
-modo = st.sidebar.radio("Modo de análisis", ["📚 Documental (Pinecone)", "📊 Tabular (Excel/CSV)"])
+modo = st.sidebar.radio("Modo de análisis", ["📚 Preguntas", "📊 Insights"])
 
 file_name = None
 if modo == "📊 Tabular (Excel/CSV)":
