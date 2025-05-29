@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 from PIL import Image
-from io import BytesIO
 import base64
 
 # --- Configuración general ---
@@ -20,7 +19,7 @@ logo = Image.open("logo.png")
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image(logo, width=100)
-st.markdown("<h1 style='text-align: center;'>✨ Asistente Lexema</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Asistente Lexema</h1>", unsafe_allow_html=True)
 
 # --- Sidebar ---
 st.sidebar.header("🔧 Configuración")
