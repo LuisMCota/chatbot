@@ -28,7 +28,7 @@ selected_namespace = st.sidebar.selectbox("Selecciona una empresa", NAMESPACES)
 modo = st.sidebar.radio("Modo de análisis", ["📚 Preguntas", "📊 Insights"])
 
 file_name = None
-if modo == "📊 Tabular (Excel/CSV)":
+if modo == "📊 Insights":
     try:
         files_response = requests.get(f"{API_TABULAR_FILES}/{selected_namespace}")
         if files_response.status_code == 200:
@@ -59,7 +59,7 @@ if user_input:
 
     try:
         with st.spinner("⏳ Pensando..."):
-            if modo == "📚 Documental (Pinecone)":
+            if modo == "📚 Preguntas":
                 url = f"{API_CHAT_URL}/{selected_namespace}"
                 payload = {"query": user_input}
             else:
