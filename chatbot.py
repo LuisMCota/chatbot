@@ -1,71 +1,19 @@
 import streamlit as st
 import requests
 from PIL import Image
+from io import BytesIO
+import base64
 
 # --- Configuración general ---
-API_CHAT_URL = "https://mi-app-591630341746.us-central1.run.app/insight"
-API_SYNC_URL = "https://mi-app-591630341746.us-central1.run.app/sync-drive-to-pinecone"
+API_CHAT_URL = "http://127.0.0.1:8080/insight"
+API_TABULAR_URL = "http://127.0.0.1:8080/tabular-insight"
+API_TABULAR_FILES = "http://127.0.0.1:8080/tabular-files"
 NAMESPACES = [
-    "APEC","Kingspan", "Bancoppel", "Bioderma", "Esthederm", "Etat-Pur",
+    "APEC", "Kingspan", "Bancoppel", "Bioderma", "Esthederm", "Etat-Pur",
     "Honeywell", "Lexema", "Sanfer", "Zoomlion"
 ]
 
 st.set_page_config(page_title="Lexema AI", layout="centered")
-
-# --- Estilos personalizados ---
-st.markdown(
-    """
-    <style>
-    body {
-        background: linear-gradient(135deg, #0f0526 0%, #190e50 100%) !important;
-        color: white !important;
-    }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 900px;
-        margin: auto;
-    }
-    .stChatMessage {
-        background-color: #1d1b3a !important;
-        color: #e6e6e6 !important;
-        border-left: 4px solid #3affc3;
-        border-radius: 10px;
-        padding: 16px;
-        margin-bottom: 12px;
-    }
-    .stButton button {
-        background-color: #3affc3;
-        color: #000000;
-        font-weight: bold;
-        border-radius: 8px;
-        border: none;
-        padding: 8px 16px;
-        transition: background-color 0.3s;
-    }
-    .stButton button:hover {
-        background-color: #30e6b0;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #10042d;
-        border-right: 1px solid #2e1f6b;
-    }
-    .stSelectbox, .stSlider, .stTextInput, .stChatInput {
-        color: #ffffff !important;
-        background-color: #1e1c3b !important;
-    }
-    h1, h2, h3, h4 {
-        color: #3affc3 !important;
-        font-weight: 700;
-    }
-    a {
-        color: #7df9ff !important;
-        text-decoration: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # --- Logo y título ---
 logo = Image.open("logo.png")
@@ -78,22 +26,24 @@ st.markdown("<h1 style='text-align: center;'>✨ Asistente Lexema</h1>", unsafe_
 st.sidebar.header("🔧 Configuración")
 
 selected_namespace = st.sidebar.selectbox("Selecciona una empresa", NAMESPACES)
-top_k = st.sidebar.slider("Cantidad de resultados (top_k)", min_value=5, max_value=30, value=30)
 
-# Sincronización
-st.sidebar.markdown("---")
-st.sidebar.subheader("📄 Sincronizar documentos")
+# 🔁 Modo de análisis
+modo = st.sidebar.radio("Modo de análisis", ["📚 Documental (Pinecone)", "📊 Tabular (Excel/CSV)"])
 
-if st.sidebar.button("🔄 Sincronizar con Pinecone"):
-    sync_url = f"{API_SYNC_URL}/{selected_namespace}"
+file_name = None
+if modo == "📊 Tabular (Excel/CSV)":
     try:
-        sync_response = requests.post(sync_url, timeout=60)
-        if sync_response.status_code == 200:
-            st.sidebar.success(f"✅ Sincronización completada para {selected_namespace}")
+        files_response = requests.get(f"{API_TABULAR_FILES}/{selected_namespace}")
+        if files_response.status_code == 200:
+            file_options = files_response.json().get("files", [])
+            if file_options:
+                file_name = st.sidebar.selectbox("Selecciona archivo tabular", file_options)
+            else:
+                st.sidebar.warning("No se encontraron archivos tabulares.")
         else:
-            st.sidebar.error(f"⚠️ Error {sync_response.status_code}: {sync_response.text}")
+            st.sidebar.warning("No se pudieron cargar los archivos.")
     except Exception as e:
-        st.sidebar.error(f"🚨 Error al sincronizar: {e}")
+        st.sidebar.error(f"Error al obtener archivos: {e}")
 
 # --- Historial de conversación ---
 if "messages" not in st.session_state:
@@ -112,18 +62,35 @@ if user_input:
 
     try:
         with st.spinner("⏳ Pensando..."):
-            response = requests.post(
-                f"{API_CHAT_URL}/{selected_namespace}",
-                json={"query": user_input, "top_k": top_k},
-                timeout=30
-            )
+            if modo == "📚 Documental (Pinecone)":
+                url = f"{API_CHAT_URL}/{selected_namespace}"
+                payload = {"query": user_input}
+            else:
+                url = f"{API_TABULAR_URL}/{selected_namespace}"
+                payload = {"query": user_input, "file_name": file_name}
+
+            response = requests.post(url, json=payload, timeout=60)
+
         if response.status_code == 200:
             data = response.json()
             answer = data.get("answer", "No se recibió respuesta.")
-        else:
-            answer = f"⚠️ Error {response.status_code}: {response.text}"
-    except Exception as e:
-        answer = f"🚨 Error al conectar con la API: {e}"
+            source = data.get("source", "desconocido")
+            full_response = f"**Fuente:** `{source}`\n\n{answer}"
 
-    st.chat_message("assistant").markdown(answer)
-    st.session_state.messages.append({"role": "assistant", "content": answer})
+            st.chat_message("assistant").markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+            # 📈 Mostrar gráfico si está presente
+            if "chart" in data:
+                st.markdown("### 📊 Gráfico generado automáticamente")
+                img_bytes = base64.b64decode(data["chart"])
+                st.image(img_bytes) 
+        else:
+            full_response = f"⚠️ Error {response.status_code}: {response.text}"
+            st.chat_message("assistant").markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+    except Exception as e:
+        full_response = f"🚨 Error al conectar con la API: {e}"
+        st.chat_message("assistant").markdown(full_response)
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
