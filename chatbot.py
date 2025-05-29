@@ -16,9 +16,7 @@ st.set_page_config(page_title="Lexema AI", layout="centered")
 
 # --- Logo y título ---
 logo = Image.open("logo.png")
-col1, col2, col3 = st.columns([2, 1, 1])
-with col2:
-    st.image(logo, width=100)
+st.image(logo, width=100)
 st.markdown("<h1>Asistente Lexema</h1>", unsafe_allow_html=True)
 
 # --- Sidebar ---
