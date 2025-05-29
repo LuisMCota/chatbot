@@ -19,7 +19,6 @@ logo = Image.open("logo.png")
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image(logo, width=100)
-st.markdown(unsafe_allow_html=True)
 
 # --- Sidebar ---
 st.sidebar.header("🔧 Configuración")
